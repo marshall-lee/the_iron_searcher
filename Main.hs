@@ -150,4 +150,4 @@ main :: IO ()
 main = do
   (needle, path) <- getArgs >>= return . interpretArgs
   (_ :/ dirTree) <- readDirectoryWith lazyReader path
-  perform dirTree needle
+  async (perform dirTree needle) >>= wait
