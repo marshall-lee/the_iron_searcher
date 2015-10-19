@@ -26,7 +26,7 @@ executable the-iron-searcher
                        bytestring >= 0.10.6.0,
                        regex-base,
                        regex-tdfa,
-                       regex-tdfa-utf8 >= 1.0,
+                       -- regex-tdfa-utf8 >= 1.0,
                        stringsearch,
                        async >= 2.0.2,
                        deepseq,

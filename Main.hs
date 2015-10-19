@@ -12,7 +12,7 @@ import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.UTF8 as UTF8
 import Text.Regex.Base.RegexLike (RegexLike)
 import qualified Text.Regex.TDFA as TDFA (Regex, makeRegex, matchAllText)
-import qualified Text.Regex.TDFA.UTF8
+{- import qualified Text.Regex.TDFA.UTF8 -}
 
 import qualified Data.ByteString.Lazy.Search as BoyerMoore (nonOverlappingIndices)
 
