@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 module Main where
 
 import Data.Maybe (mapMaybe)
@@ -9,6 +10,7 @@ import Data.Array ((!))
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.UTF8 as UTF8
+import Text.Regex.Base.RegexLike (RegexLike)
 import qualified Text.Regex.TDFA as TDFA (Regex, makeRegex, matchAllText)
 import qualified Text.Regex.TDFA.UTF8
 
@@ -36,6 +38,7 @@ buildFileReader reader path =
 lazyReader :: FilePath -> IO (FilePath, BL.ByteString)
 lazyReader = buildFileReader BL.readFile
 
+regexMatcher :: RegexLike regex BL.ByteString => regex -> MatchFunc
 regexMatcher needle haystack =
   let
       ms = TDFA.matchAllText needle haystack
@@ -53,6 +56,7 @@ regexMatcher needle haystack =
         [] -> Nothing
         _  -> Just result
 
+boyerMooreMatcher :: B.ByteString -> MatchFunc
 boyerMooreMatcher needle haystack =
   case occurences of
     [] -> Nothing
