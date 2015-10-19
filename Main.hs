@@ -19,6 +19,7 @@ import qualified Data.ByteString.Lazy.Search as BoyerMoore (nonOverlappingIndice
 import Control.Concurrent.Async (async, wait)
 import Control.Concurrent.Chan
 import Control.DeepSeq (force)
+import Control.Monad (liftM)
 
 import System.Environment (getArgs)
 import System.Directory.Tree
@@ -77,7 +78,7 @@ boyerMooreMatcher needle haystack =
              else tmp ++ [(haystackSuffix iLast, BL.empty)]
 
 matchLine :: MatchFunc -> Line -> Maybe MatchedLine
-matchLine finder (n, line) = finder line >>= return . ((,) n)
+matchLine finder (n, line) = liftM ((,) n) $ finder line
 
 matchLines :: MatchFunc -> BL.ByteString -> [MatchedLine]
 matchLines finder haystack =
@@ -107,9 +108,8 @@ perform :: (Foldable f) => f (FilePath, BL.ByteString) -> BL.ByteString -> IO ()
 perform files pattern = do
   fChannel <- newChan
   let
-    spawnSearch (path, file) tasks = do
-      t <- async (doMatch path file)
-      return (t : tasks)
+    spawnSearch (path, file) tasks =
+      liftM (: tasks) $ async (doMatch path file)
 
     doMatch path file = case matches of
                           (m : matches') -> do mChannel <- startWithFile path
@@ -152,6 +152,6 @@ perform files pattern = do
 
 main :: IO ()
 main = do
-  (needle, path) <- getArgs >>= return . interpretArgs
+  (needle, path) <- liftM interpretArgs getArgs
   (_ :/ dirTree) <- readDirectoryWith lazyReader path
   async (perform dirTree needle) >>= wait
