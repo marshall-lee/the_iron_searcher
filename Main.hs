@@ -112,10 +112,10 @@ perform files pattern = do
       liftM (: tasks) $ async (doMatch path file)
 
     doMatch path file = case matches of
-                          (m : matches') -> do mChannel <- startWithFile path
-                                               reportFileMatch mChannel m
-                                               forM_ (force matches') $ reportFileMatch mChannel
-                                               endWithFile mChannel
+                          matches@(m : matches') ->
+                                do mChannel <- startWithFile path
+                                   forM_ (force matches) $ reportFileMatch mChannel
+                                   endWithFile mChannel
                           [] -> return ()
                         where matches = matchLines finder file
 
