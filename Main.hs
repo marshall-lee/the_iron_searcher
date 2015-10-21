@@ -111,13 +111,12 @@ perform files pattern = do
     spawnSearch (path, file) tasks =
       liftM (: tasks) $ async (doMatch path file)
 
-    doMatch path file = case matches of
+    doMatch path file = case (matchLines finder file) of
                           matches@(m : matches') ->
                                 do mChannel <- startWithFile path
                                    forM_ (force matches) $ reportFileMatch mChannel
                                    endWithFile mChannel
                           [] -> return ()
-                        where matches = matchLines finder file
 
     startWithFile path = do mChannel <- newChan
                             writeChan fChannel (Just (path, mChannel))
