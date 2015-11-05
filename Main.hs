@@ -137,8 +137,8 @@ perform files pattern = do
                  printResultsLoop
             printResults Nothing = return ()
 
-  tasks <- foldrM spawnSearch [] files
   printTask <- async printResultsLoop
+  tasks <- foldrM spawnSearch [] files
   forM_ tasks wait
   writeChan fChannel Nothing
   wait printTask
