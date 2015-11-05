@@ -4,7 +4,6 @@ module Main where
 import Data.Maybe (mapMaybe)
 import Data.Foldable (Foldable, foldrM, forM_)
 import Data.Traversable (mapAccumL)
-import Data.List (unfoldr)
 import Data.Array ((!))
 
 import qualified Data.ByteString as B
