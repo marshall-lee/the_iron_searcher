@@ -107,6 +107,11 @@ perform :: (Foldable f) => f (FilePath, BL.ByteString) -> BL.ByteString -> IO ()
 perform files pattern = do
   fChannel <- newChan
   let
+    {- regex = TDFA.makeRegex (Text.Regex.TDFA.UTF8.Utf8 pattern) :: TDFA.Regex -}
+    {- finder = regexMatcher regex -}
+    needle = BL.toStrict pattern
+    finder = boyerMooreMatcher needle
+
     spawnSearch (path, file) tasks =
       liftM (: tasks) $ async (doMatch path file)
 
@@ -142,11 +147,6 @@ perform files pattern = do
   forM_ tasks wait
   writeChan fChannel Nothing
   wait printTask
-  where
-    {- regex = TDFA.makeRegex (Text.Regex.TDFA.UTF8.Utf8 pattern) :: TDFA.Regex -}
-    {- finder = regexMatcher regex -}
-    needle = BL.toStrict pattern
-    finder = boyerMooreMatcher needle
 
 main :: IO ()
 main = do
