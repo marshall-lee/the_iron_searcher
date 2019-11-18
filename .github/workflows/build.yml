@@ -1,0 +1,32 @@
+name: Build
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-haskell@v1
+        with:
+          ghc-version: '8.6.5'
+          cabal-version: '2.4'
+      - name: Cabal sandbox cache
+        uses: actions/cache@v1
+        id: cache-cabal-sandbox
+        with:
+          path: .cabal-sandbox
+          key: ${{ runner.os }}-cabal-sandbox
+      - name: Cabal sandbox init
+        # if: steps.cache-cabal-sandbox.outputs.cache-hit != 'true'
+        run: cabal v1-sandbox init
+      - name: Cabal dependencies
+        run: |
+          cabal v1-update
+          cabal v1-install -j4 --only-dependencies
+      - name: Cabal build
+        run: cabal build

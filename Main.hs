@@ -48,7 +48,7 @@ regexMatcher needle haystack =
       haystackSlice i n = BL.take (fromIntegral n) (haystackSuffix i)
       combine i (m,(j,n)) = (j+n, (haystackSlice i (j - i), m))
       (iLast, tmp) = mapAccumL combine 0 ms'
-      result = if (haystackLength == fromIntegral iLast)
+      result = if haystackLength == fromIntegral iLast
                then tmp
                else tmp ++ [(haystackSuffix iLast, BL.empty)]
   in
@@ -72,17 +72,16 @@ boyerMooreMatcher needle haystack =
     haystackSlice i n = BL.take (fromIntegral n) (haystackSuffix i)
     combine i j = (j + needleLength, (haystackSlice i (j - i), lazyNeedle))
     (iLast, tmp) = mapAccumL combine 0 occurences
-    result = if (haystackLength == fromIntegral iLast)
+    result = if haystackLength == fromIntegral iLast
              then tmp
              else tmp ++ [(haystackSuffix iLast, BL.empty)]
 
 matchLine :: MatchFunc -> Line -> Maybe MatchedLine
-matchLine finder (n, line) = liftM ((,) n) $ finder line
+matchLine finder (n, line) = (,) n <$> finder line
 
 matchLines :: MatchFunc -> BL.ByteString -> [MatchedLine]
-matchLines finder haystack =
-  let lines = [1..] `zip` (UTF8.lines haystack)
-  in mapMaybe (matchLine finder) lines
+matchLines finder haystack = mapMaybe (matchLine finder) lines
+  where lines = [1..] `zip` UTF8.lines haystack
 
 highlight s =
   let
@@ -97,25 +96,24 @@ formatMatchedLine :: MatchedLine -> String
 formatMatchedLine (n, ms) =
   printf "%i: %s" n (UTF8.toString h)
   where
-    h = BL.concat $ map (\(s,t) -> s `BL.append` (highlight t)) ms
+    h = BL.concat $ map (\(s,t) -> s `BL.append` highlight t) ms
 
 interpretArgs [needle, path] = (UTF8.fromString needle, path)
 interpretArgs [needle]       = interpretArgs [needle, "./"]
 interpretArgs []             = interpretArgs ["foo"]
 
 perform :: (Foldable f) => f (FilePath, BL.ByteString) -> BL.ByteString -> IO ()
-perform files pattern = do
+perform files pat = do
   fChannel <- newChan
   let
     {- regex = TDFA.makeRegex (Text.Regex.TDFA.UTF8.Utf8 pattern) :: TDFA.Regex -}
     {- finder = regexMatcher regex -}
-    needle = BL.toStrict pattern
+    needle = BL.toStrict pat
     finder = boyerMooreMatcher needle
 
-    spawnSearch (path, file) tasks =
-      liftM (: tasks) $ async (doMatch path file)
+    spawnSearch (path, file) tasks = (: tasks) <$> async (doMatch path file)
 
-    doMatch path file = case (matchLines finder file) of
+    doMatch path file = case matchLines finder file of
                           matches@(m : matches') ->
                                 do mChannel <- startWithFile path
                                    forM_ (force matches) $ reportFileMatch mChannel
@@ -150,6 +148,6 @@ perform files pattern = do
 
 main :: IO ()
 main = do
-  (needle, path) <- liftM interpretArgs getArgs
+  (needle, path) <- interpretArgs <$> getArgs
   (_ :/ dirTree) <- readDirectoryWith lazyReader path
   async (perform dirTree needle) >>= wait
