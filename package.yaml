@@ -1,0 +1,32 @@
+name:                the-iron-searcher
+version:             0.1.0.0
+author:              "Vladimir Kochnev"
+maintainer:          "hashtable@yandex.ru"
+homepage:            "https://github.com/marshall-lee/the_iron_searcher" 
+copyright:           "2021 Vladimir Kochnev"
+
+extra-source-files:
+- CHANGELOG.md
+- README.md
+
+dependencies:
+- base >= 4.7 && < 5
+
+executables:
+  the-iron-searcher:
+    main:                Main.hs
+    ghc-options:
+    - -O2
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - array
+    - async
+    - bytestring
+    - deepseq
+    - directory-tree
+    - regex-base
+    - regex-tdfa
+    - stringsearch
+    - utf8-string
